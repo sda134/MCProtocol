@@ -3,6 +3,7 @@
  
 # ここは見通しをよくする　c++の ヘッダーのような形をとる
 from .classes import CpuType, PacketType, Protocol, EtherFrame, SerialFrameID
+from .fxdevice import FxDataType
 from . import config, plc_dict, protcol_eth, protcol_1E
 import socket
 
@@ -16,14 +17,15 @@ class MCProtocol():
     def __del__(self):
         pass
     
-    def get_device(self, device_name):
+    def get_device(self, device_name:str, data_type:FxDataType) -> None:
         if(config.PROTOCOL == Protocol.Serial):
-            return 0
+            return
         else:
             if(config.EtherFrame == EtherFrame.Ether_1E):
-                return protcol_1E.get_device(device_name)
+                pass
             else:
-                return protcol_eth.get_device(device_name)
+                received_dt = protcol_eth.get_device(device_name)
+                return
         
     def set_device(self, device_name, value) :
         pass

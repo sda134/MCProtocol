@@ -28,6 +28,17 @@ def _get_device_bytes(device_name: str) -> bytearray:
         dev_bytes.extend(fxdev.DeviceType.to_bytes(1, 'little'))
     return dev_bytes
 
+def _distinguish_reciedved_data(recieved_data:bytearray):
+    if(config.ETHERNET_FRAME == EtherFrame.Ether_4E):
+        start = 9
+    else:
+        start = 7
+    data_length = int.from_bytes(recieved_data[start:start+2], 'little')
+    ret_code = int.from_bytes(recieved_data[start+2:start+4], 'little')
+    if data_length > 2:
+        data_bytes = recieved_data[start+4:]
+
+    return ret_code, data_bytes
 
 def get_device(device_name: str) -> bytearray:
     rt_bytes = _get_route_bytes()                       # 要求データ（特にデータ長さが必要）
@@ -50,10 +61,10 @@ def get_device(device_name: str) -> bytearray:
     try:
         soc = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         soc.connect((host, port))
-        print('Sending:', repr(sendingData))
+        #print('Sending:', repr(sendingData))
         soc.sendall(sendingData)
         recievedData = soc.recv(1024)
-        print('Received:', repr(recievedData))        
+        #print('Received:', repr(recievedData))
     except TimeoutError:
         print ('Timeout')
         pass
@@ -61,6 +72,5 @@ def get_device(device_name: str) -> bytearray:
         print ('Exception: %s' % e)
     else:
         pass
-    
-    return recievedData
+    return _distinguish_reciedved_data(recievedData)
 
