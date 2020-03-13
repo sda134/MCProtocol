@@ -10,5 +10,5 @@ from .classes import EtherFrame
 '''
 
 
-def get_device(device_name: str):
+def get_device_list():
     pass
