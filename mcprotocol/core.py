@@ -37,42 +37,39 @@ class MCProtocol():
         pass
     
     def get_device(self, device_name:str, fx_data_type:FxDataType)-> Optional[FxDevice]:
-        '''
-        単一デバイスの読み込み
-        '''
-        dev_list = [FxDevice(device_name= device_name, fx_data_type= fx_data_type)]
-        ret = self.get_device_list(dev_list)
-        if ret == None: return None
-        else: return dev_list[0]
+        pass
 
-    def get_device_list(self, device_list:List[FxDevice]):
+    def get_device_list(self, start_device:str,device_list:List[FxDevice]):
         '''
         連続デバイスの読み込み
+        device_list は値とデータ型のみが有効で、デバイス名は無視されます。
+        '''
+        pass
+
+
+    def set_device_list(self, start_device:str,device_list:List[FxDevice]):
+        '''
+        連続デバイスの読み込み
+        device_list は値とデータ型のみが有効で、デバイス名は無視されます。
+        '''
+        pass
+
+
+    def get_device_random(self,device_list:List[FxDevice]):
+        '''
+        複数デバイスの読み込み
         '''
         if(config.PROTOCOL == Protocol.Serial):
             pass
         else:
             if(config.EtherFrame == EtherFrame.Ether_1E):
-                return protcol_1E.get_device_list()
-            else:
-                return protcol_eth.get_device_list(device_list)
-
-
-    def set_device_list(self, device_list:List[FxDevice]) :
-        if(config.PROTOCOL == Protocol.Serial):
-            pass
-        else:
-            if(config.EtherFrame == EtherFrame.Ether_1E):
                 pass
             else:
-                pass
-
-    def get_device_random(self,device_list:List[FxDevice]):
-        pass
+                return protcol_eth.get_device_random(device_list)
 
     def set_device_random(self, device_list:List[FxDevice]) :
         '''
-        無作為の複数デバイスの書き込み
+        複数デバイスの書き込み
         '''
         if(config.PROTOCOL == Protocol.Serial):
             pass

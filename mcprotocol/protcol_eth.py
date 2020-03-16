@@ -2,7 +2,7 @@
 #coding: UTF-8
 
 import socket
-from typing import Optional, List
+from typing import Optional, List, Dict
 
 from itertools import groupby
 
@@ -39,27 +39,6 @@ def _distinguish_reciedved_data(recieved_data:bytearray):
     return ret_code, data_bytes
 
 
-def _send_socket_data(sending_data:bytearray) -> Optional[bytearray]:
-    # なぜか一度変数にしないと通信が拒否される
-    host = config.DESTINATION_IP
-    port = config.DESTINATION_PORT
-    recievedData = None
-
-    try:
-        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as soc:
-            soc.connect((host, port))
-            print('Sending:', repr(sending_data))
-            soc.sendall(sending_data)
-            recievedData = soc.recv(1024)
-            print('Received:', repr(recievedData))    
-    except TimeoutError:
-        print ('Timeout')
-        pass
-    except Exception as e:
-        print ('Exception: %s' % e)
-    else:
-        pass
-    return recievedData
 
         
 # メソッドの中身がえらく長くなってしまったので、再度考え直す事
@@ -83,21 +62,19 @@ def get_device_list(device_list:List[FxDevice]):    # MCProtocol的にはこっ�
         rqst_bytes.extend(device_dict.get_device_bytes(fx_dev)) # 対象デバイス：番号＋コード
         dev_length += fx_dev.fxdatatype.get_word_length()
 
-
     rqst_bytes.extend(dev_length.to_bytes(2, 'little'))   # デバイス数
 
+    # ここから送信データの作成
     sd_data = __route_bytes                                 # アクセス経路まで
     sd_data.extend(len(rqst_bytes).to_bytes(2, 'little'))   # 要求データ長さ(2byte)
     sd_data.extend(rqst_bytes)                              # 要求データ
 
-    recievedData = _send_socket_data(sd_data)               # ソケットで送信
-
+    recievedData = __send_socket_data(sd_data)               # ソケットで送信
     if recievedData == None:                                # 通信失敗
         return None
     
     distinguished = _distinguish_reciedved_data(recievedData)   # データ判別
     ret_code = distinguished[0]
-
     if not ret_code == 0:                                   # 通信は成功したが、エラー電文が返ってきた
         return ret_code
 
@@ -111,7 +88,7 @@ def get_device_list(device_list:List[FxDevice]):    # MCProtocol的にはこっ�
 
 
 
-def set_device_list(device_name:str,):
+def set_device_list(start_device:str, device_list:List[FxDevice]):
     rqst_bytes = bytearray(                         #
         config.MONITOR_TIMER.to_bytes(2, 'little')) # 監視タイマ(2byte)
     is_all_bit = False                              # 全てビットなら，「ビット単位での電文」を利用する
@@ -128,6 +105,7 @@ def set_device_list(device_name:str,):
     pass
 
 
+# もう不要 03.20 くらいに削除
 def set_device_random_test():
     sd_data = bytearray([
         0x50,0x00,                # 要求電文を示す(2byte)
@@ -156,7 +134,60 @@ def set_device_random_test():
         0x83, 0x05,
     ])
 
-    recievedData = _send_socket_data(sd_data)               # ソケットで送信
+    recievedData = __send_socket_data(sd_data)               # ソケットで送信
+
+
+def get_device_random(device_list:List[FxDevice]):
+    rqst_bytes = bytearray(                         #
+        config.MONITOR_TIMER.to_bytes(2, 'little')) # 監視タイマ(2byte)
+    if config.CPU_SERIES == CPUSeries.iQ_R:
+        rqst_bytes.extend([0x03,0x04,0x02,0x00])   # ワード，iQ-R   モニタ条件を指定　は無視 20.03.16
+    else:
+        rqst_bytes.extend([0x03,0x04,0x00,0x00])   # ワード，Q/L
+    
+    # single word とdouble word を分ける    ※良いgroupbyが見つからなかった
+    single_list:List[FxDevice] =[]
+    double_list:List[FxDevice] =[]
+    for dev in device_list:
+        if dev.fxdatatype.get_word_length() == 1: single_list.append(dev)
+        elif dev.fxdatatype.get_word_length() == 2: double_list.append(dev)
+
+    rqst_bytes.extend(len(single_list).to_bytes(1, 'little'))   # single wordデータ長さ(1byte)
+    rqst_bytes.extend(len(double_list).to_bytes(1, 'little'))   # double wordデータ長さ(1byte)
+
+    for dev in single_list:
+        rqst_bytes.extend(device_dict.get_device_bytes(dev))    # デバイス名＋デバイスコード：single word
+        pass
+
+    for dev in double_list:
+        rqst_bytes.extend(device_dict.get_device_bytes(dev))    # デバイス名＋デバイスコードdouble word
+        pass
+
+    sd_data = __route_bytes                                 # アクセス経路まで
+    sd_data.extend(len(rqst_bytes).to_bytes(2, 'little'))   # 要求データ長さ(2byte)
+    sd_data.extend(rqst_bytes)                              # 要求データ
+
+    recievedData = __send_socket_data(sd_data)               # ソケットで送信
+
+    if recievedData == None:                                # 通信失敗
+        return None
+    
+    distinguished = _distinguish_reciedved_data(recievedData)   # データ判別
+
+    count = 0                                               # デバイスリストに値を格納していく
+    data_bytes = distinguished[1]
+
+    for dev in single_list:
+        byte_length = dev.fxdatatype.get_word_length() * 2
+        dev.set_value_from_bytes(data_bytes[count:count+byte_length])
+        count += byte_length
+        pass
+
+    for dev in double_list:
+        byte_length = dev.fxdatatype.get_word_length() * 2
+        dev.set_value_from_bytes(data_bytes[count:count+byte_length])
+        count += byte_length
+        pass
 
 
 def set_device_random(device_list:List[FxDevice]):
@@ -174,7 +205,7 @@ def set_device_random(device_list:List[FxDevice]):
         else:
             rqst_bytes.extend([0x02,0x14,0x00,0x00])   # ワード，Q/L
     
-    # single word とdouble word を分けるとか言うアホ仕様    ※良いgroupbyが見つからなかった
+    # single word とdouble word を分ける    ※良いgroupbyが見つからなかった
     single_list:List[FxDevice] =[]
     double_list:List[FxDevice] =[]
     for dev in device_list:
@@ -198,7 +229,7 @@ def set_device_random(device_list:List[FxDevice]):
     sd_data.extend(len(rqst_bytes).to_bytes(2, 'little'))   # 要求データ長さ(2byte)
     sd_data.extend(rqst_bytes)                              # 要求データ
 
-    recievedData = _send_socket_data(sd_data)               # ソケットで送信
+    recievedData = __send_socket_data(sd_data)               # ソケットで送信
 
     if recievedData == None:                                # 通信失敗
         return None
@@ -208,7 +239,7 @@ def set_device_random(device_list:List[FxDevice]):
     return ret_code
 
 
-def send_socket_data(sending_data:bytearray) -> Optional[bytearray]:    
+def __send_socket_data(sending_data:bytearray) -> Optional[bytearray]:    
     host = config.DESTINATION_IP    # なぜか一度変数にしないと
     port = config.DESTINATION_PORT  # 通信が拒否される
     recievedData = None

@@ -21,6 +21,15 @@ class FxDeviceType(IntEnum):
     Timer_Coil = 0xC0,     # タイマーコイル [TC]
     Timer_Value = 0xC2,    # タイマー現在値 [TN]
 
+    def __str__(self):
+        if(self.value == FxDeviceType.InputSignal): return 'Y'
+        elif(self.value == FxDeviceType.OutputSignal): return 'X'
+        elif(self.value == FxDeviceType.InnerRelay): return 'M'
+        elif(self.value == FxDeviceType.DataRegister): return 'D'
+        elif(self.value == FxDeviceType.Timer_Contact): return 'TS'
+        elif(self.value == FxDeviceType.Timer_Coil): return 'TC'
+        elif(self.value == FxDeviceType.Timer_Value): return 'TN'
+
 
 class FxDataType(IntEnum):
     Signed16 = 0,
@@ -119,10 +128,10 @@ class FxDevice:
             self.__device_type = None
 
     def __str__(self):              # toString() の様な物。printなどで文字列に変換する場合に呼び出される。
-        return '<str>' + '{0}{1}'.format(self.__device_type, self.__device_number)
+        return '{0}{1}'.format(str(self.__device_type), self.__device_number)
 
     def __repr__(self):             # __str__ に似ているが、repr() を使った時の結果
-        return '<repr>' + self.value
+        return '{0}{1} [{2}]'.format(str(self.__device_type), self.__device_number, str(self.value))
 
 
     @property                       # プロパティ get
@@ -179,15 +188,15 @@ class FxDevice:
         elif self.__fx_data_type == FxDataType.Signed32:
             self.__value = int.from_bytes(byte_data[:4],'little', signed=True)
         elif self.__fx_data_type == FxDataType.Unsigned16:
-            self.__value = int.from_bytes(byte_data[:2],'little', signed=True)
+            self.__value = int.from_bytes(byte_data[:2],'little', signed=False)
         elif self.__fx_data_type == FxDataType.Unsigned32:
-            self.__value = int.from_bytes(byte_data[:4],'little', signed=True)
+            self.__value = int.from_bytes(byte_data[:4],'little', signed=False)
         elif self.__fx_data_type == FxDataType.Float:
             array = bytearray(byte_data)    # バイト数が足りないと怒られるので
             while len(array) < 4:           # 4byteを確保
                 array.append(0x00)
             byte_data = bytes(array)        # 多くても怒られる →つまりbyte 数が4 の倍数である必用がある
-            self.__value = struct.unpack('f', byte_data[:4])[0]
+            self.__value = float(struct.unpack('f', byte_data[:4])[0])
         pass
 
         
