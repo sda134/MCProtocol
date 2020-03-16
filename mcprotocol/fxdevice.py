@@ -127,11 +127,14 @@ class FxDevice:
         if self.__device_number== -1:
             self.__device_type = None
 
+
     def __str__(self):              # toString() の様な物。printなどで文字列に変換する場合に呼び出される。
         return '{0}{1}'.format(str(self.__device_type), self.__device_number)
 
     def __repr__(self):             # __str__ に似ているが、repr() を使った時の結果
-        return '{0}{1} [{2}]'.format(str(self.__device_type), self.__device_number, str(self.value))
+        return '{0}{1} [{2}]'.format(
+            str(self.__device_type), self.__device_number, str(self.value)
+            )
 
 
     @property                       # プロパティ get

@@ -3,28 +3,13 @@
  
 # ここは出来る限り見通しをよくする　c++の ヘッダーのような形をとる
 # 各module のメソッドからはbytes で受け取って、signed16,32 などへの変換はここで行う
-from typing import (List, Optional)
+from typing import (List, Optional, Union)
 
 from .classes import CpuType, PacketType, Protocol, EtherFrame, SerialFrameID
 from .fxdevice import FxDataType, FxDevice
 from . import config, plc_dict, protcol_eth, protcol_1E
-import socket
 
-__byte_len_dic = {
-    FxDataType.Signed16: 1,
-    FxDataType.Signed32: 2, 
-    FxDataType.Unsigned16: 1,
-    FxDataType.Unsigned32: 2,
-    FxDataType.Float: 2,
-    FxDataType.Bit: 1,
-    }
 
-def _bytes_to_value(byte_data:bytes, data_type:FxDataType):
-    if data_type == FxDataType.Signed16:
-        return int.from_bytes(byte_data, 'little')
-    else:
-        pass
-    return None
 
 class MCProtocol():
     def __init__(self, cpu_type):
@@ -36,23 +21,44 @@ class MCProtocol():
     def __del__(self):
         pass
     
-    def get_device(self, device_name:str, fx_data_type:FxDataType)-> Optional[FxDevice]:
+
+    def get_device(self, device_name:str, fx_data_type:FxDataType)-> Union[None, int, float]:
+        ret = self.get_device_list(device_name, 1, fx_data_type)
+        if ret == None: return None
+        else: return ret
+        
+    def set_device(self, device_name:str, fx_data_type:FxDataType, value:Union[int,float])-> None:
         pass
 
-    def get_device_list(self, start_device:str,device_list:List[FxDevice]):
+
+    def get_device_list(self, start_device:str, device_count:int, fx_data_type: FxDataType = FxDataType.Signed16 )-> List[Union[int,float]]:
         '''
-        連続デバイスの読み込み
-        device_list は値とデータ型のみが有効で、デバイス名は無視されます。
+        連続デバイスの読み込み\n
+        start_device\t:先頭デバイス\n
+        fx_data_type\t:データ型（※PLC からの取得バイトはすべてこの型に変換されます。）
         '''
-        pass
+        if(config.PROTOCOL == Protocol.Serial):
+            pass
+        else:
+            if(config.ETHERNET_FRAME == EtherFrame.Ether_1E):
+                pass
+            else:
+                return protcol_eth.get_device_list(start_device, device_count, fx_data_type)
 
 
-    def set_device_list(self, start_device:str,device_list:List[FxDevice]):
+    def set_device_list(self, start_device:str, value_list: List[Union[int, float]], fx_data_type: FxDataType = FxDataType.Signed16 )-> Union[int,float]:
         '''
-        連続デバイスの読み込み
-        device_list は値とデータ型のみが有効で、デバイス名は無視されます。
+        連続デバイスの書き込み\n
+        start_device\t:先頭デバイス\n
+        value_list\t:
         '''
-        pass
+        if(config.PROTOCOL == Protocol.Serial):
+            pass
+        else:
+            if(config.EtherFrame == EtherFrame.Ether_1E):
+                pass
+            else:
+                return protcol_eth.set_device_list(start_device, value_list, fx_data_type)
 
 
     def get_device_random(self,device_list:List[FxDevice]):
@@ -67,6 +73,7 @@ class MCProtocol():
             else:
                 return protcol_eth.get_device_random(device_list)
 
+
     def set_device_random(self, device_list:List[FxDevice]) :
         '''
         複数デバイスの書き込み
@@ -78,7 +85,8 @@ class MCProtocol():
                 pass
             else:
                 return protcol_eth.set_device_random(device_list)
-                
+
+
     def read_buffer(self, start_address, byte_array):
         pass
 
