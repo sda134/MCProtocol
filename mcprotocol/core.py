@@ -23,11 +23,20 @@ class MCProtocol():
     
 
     def get_device(self, device_name:str, fx_data_type:FxDataType)-> Union[None, int, float]:
+        '''
+        単一デバイスの書き込み\n
+        （実際には get_device_list のラッパーメソッドです。）
+        '''
         ret = self.get_device_list(device_name, 1, fx_data_type)    # 単一の時とlistで引数の順番が異なる
         if ret == None: return None
         else: return ret
+
         
     def set_device(self, device_name:str, value:Union[int,float], fx_data_type:FxDataType)-> None:
+        '''
+        単一デバイスの書き込み\n
+        （実際には set_device_list のラッパーメソッドです。）
+        '''
         return self.set_device_list(device_name, [value], fx_data_type)
 
 

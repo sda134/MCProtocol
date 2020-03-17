@@ -21,6 +21,33 @@ class FxDeviceType(IntEnum):
     Timer_Coil = 0xC0,     # タイマーコイル [TC]
     Timer_Value = 0xC2,    # タイマー現在値 [TN]
 
+    # 以下、未実装 20.03.17
+    SpecialRelay = 0x91,    # 特殊リレー [SM]
+    SpecialRegister = 0xA9, # 特殊レジスタ [SD]
+
+    IntegratedTimerContact = 0xC7,  # 積算タイマー接点 [STS]
+    IntegratedTimer_Coil = 0xC6,    # 積算タイマーコイル [STC]
+    IntegratedTimer_Value = 0xC8,   # 積算タイマー現在値 [STN]
+
+    Counter_Contact = 0xC4,         # カウンタ接点 [CS]
+    Counter_Coil = 0xC3,            # カウンタコイル [CC]
+    Counter_Value = 0xC5,           # カウンタ現在値 [CN]
+
+    LongCounter_Contact = 0x55,     # ロングカウンタ接点 [LCS]
+    LongCounter_Coil = 0x54,        # ロングカウンタコイル [LCC]
+    LongCounter_Value = 0x56,       # ロングカウンタ現在値 [LCN]
+
+    FileRegister = 0xAF,            # ファイルレジスタ：ブロック切り替え方式 [R]
+    FileRegister_ZR = 0xB0,         # ファイルレジスタ：連番アクセス方式 [ZR]  なぜ２つある？ 18.01.16
+    RefreshDataRegister = 0x2C,     # リフレッシュデータレジスタ [RD]
+
+    LinqDirect = 0x4A,              # リンクダイレクトデバイス [Jn\]
+
+    UnitBuffer = 0xAB,              # バッファ [Un\G*]
+    #RCPUBuffer = 0xAB,             # バッファ [Un\**]  RCPUのバッファメモリらしいが、良く分からない 20.03.17
+    # ⇒ デバイスコードは通常のものを使う。RCPUBufferかどうかは unit_number がNone かどうかで判断する
+    UnitBufferHG = 0x2E,            # バッファ [Un\HG*] iQRで用いる、ユニットバッファの定周期通信エリアの事らしいが良く分からない。20.03.17
+
     def __str__(self):
         if(self.value == FxDeviceType.InputSignal): return 'Y'
         elif(self.value == FxDeviceType.OutputSignal): return 'X'
@@ -107,7 +134,7 @@ class FxDevice:
 
             # 一文字ずつ検索して、発見したら割り当てる
             for dev in devList:
-                if upper_name.startswith(dev[1][0]):   # なぜか tuple になっている 19.07.15                    
+                if upper_name.startswith(dev[1][0]):   # tuple である点に注意
                     self.__number_system = dev[1][1]
                     numStr = device_name[len(dev[1][0]):len(device_name)]
                     self.__deviceLetter = dev[1][0]
@@ -130,6 +157,7 @@ class FxDevice:
 
     def __str__(self):              # toString() の様な物。printなどで文字列に変換する場合に呼び出される。
         return '{0}{1}'.format(str(self.__device_type), self.__device_number)
+
 
     def __repr__(self):             # __str__ に似ているが、repr() を使った時の結果
         return '{0}{1} [{2}]'.format(
@@ -202,4 +230,37 @@ class FxDevice:
             self.__value = float(struct.unpack('f', byte_data[:4])[0])
         pass
 
-        
+class UnitDevice:
+    def __init__(self, device_name:str):
+        self.__unit_number: Optional[int] = None
+        self.__device_number: int = 0
+        self.__fx_device_type :Optional[FxDeviceType]
+
+        idx = device_name.find('\\')
+        if not idx == -1:
+            unit_str = device_name[:idx]
+            number_str = device_name[idx+1:]
+            if unit_str[:1] == 'U':
+                self.__unit_number = int(unit_str[1:])
+                if number_str[:1] == 'G':
+                    self.__fx_device_type = FxDeviceType.UnitBuffer
+                    self.__device_number = int(number_str[1:])
+                elif number_str[:2] == 'HG':
+                    self.__fx_device_type = FxDeviceType.UnitBufferHG
+                    self.__device_number = int(number_str[2:])
+                else:
+                    fx = FxDevice(number_str)
+                    self.__fx_device_type = fx.devicetype
+                    self.__device_number = fx.devicenumber
+            elif unit_str[:1] == 'J':
+                self.__fx_device_type = FxDeviceType.LinqDirect
+                self.__unit_number = int(unit_str[1:])
+                self.__device_number = int(number_str)
+                print('hoge')
+            else:                               # ￥があって，その他の文字列が
+                self.__unit_number = None       # デバイス書式に準じていない，と言う事
+                self.__fx_device_type = None    # self = None みたいな感じでもいいくらい
+                print('hoge')
+        pass
+
+

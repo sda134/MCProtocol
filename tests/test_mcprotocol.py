@@ -21,7 +21,6 @@ mc_proc = mcprotocol.MCProtocol(cpu_type= CpuType.FX5UCPU)
 test1_single_16_rd = mc_proc.get_device('D100', FxDataType.Signed16)
 test1_single_u32_rd = mc_proc.get_device('D102', FxDataType.Unsigned32)
 test1_single_fl_rd = mc_proc.get_device('D104', FxDataType.Float)
-print(test1_single_16_rd)
 
 test1_single_16_wr = mc_proc.set_device('D100', 123, FxDataType.Signed16)
 test1_single_u32_wr = mc_proc.set_device('D102', 1234567, FxDataType.Unsigned32, )

@@ -18,7 +18,7 @@ def get_device_list(start_device:str, device_count:int, fx_datatype: FxDataType 
     is_all_bit = False                              # 全てビットなら，「ビット単位での電文」を利用する
     if is_all_bit:                                  # 但し「ビット単位の電文」の実装をする気は今のところない　20.03.13 
         if config.CPU_SERIES == CPUSeries.iQ_R:
-            rqst_bytes.extend([0x01,0x04,0x03,0x00])   # ビット，iQ-R
+            rqst_bytes.extend([0x01,0x04,0x03,0x00])   # ビット，iQ-R　(コマンド2byte, サブコマンド2byte)
         else:
             rqst_bytes.extend([0x01,0x04,0x01,0x00])   # ビット，Q/L
     else:
@@ -201,5 +201,11 @@ def set_device_random(device_list:List[FxDevice]):
     return ret_code
 
 
-
+def get_unit_buffuer():
+    rqst_bytes = bytearray(                         #
+        config.MONITOR_TIMER.to_bytes(2, 'little')) # 監視タイマ(2byte)
+    if config.CPU_SERIES == CPUSeries.iQ_R:
+        rqst_bytes.extend([0x00,0x00])   # ビット，iQ-R　(コマンド2byte)
+    else:
+        rqst_bytes.extend([0x00,0x00])   # ビット，Q/L
 
