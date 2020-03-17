@@ -1,5 +1,5 @@
 ﻿## MCProtocol
-三菱PLCとの通信
+三菱PLCとの通信（開発途中）
 
 ## Demo
     import mcprotocol
@@ -14,3 +14,9 @@
     # CPU 毎に通信プロトコルが異なるので、
     # クラス生成時に CPU情報を入れる事でプロトコル判断を行う
     mc_proc = mcprotocol.MCProtocol(cpu_type= CpuType.FX5UCPU)
+
+    # 単一デバイスの読み書き
+    ret_wr = mc_proc.set_device('D100', 123, FxDataType.Signed16)    
+    ret_rd = mc_proc.get_device('D100', FxDataType.Signed16)
+    print (ret_rd)
+        # > [123]

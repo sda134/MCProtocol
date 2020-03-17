@@ -40,10 +40,15 @@ def socket_send(sending_data:bytearray) -> Optional[bytearray]:
     try:
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as soc:
             soc.connect((host, port))
-            print('Sending:', repr(sending_data))
+            
+            if config.MONITOR_SENDING_BYTES:
+                print('Sending:', repr(sending_data))
+            
             soc.sendall(sending_data)
             recievedData = soc.recv(1024)
-            print('Received:', repr(recievedData))    
+
+            if config.MONITOR_RECEIVED_BYTES:
+                print('Received:', repr(recievedData))    
     except TimeoutError:
         print ('Timeout')
         pass

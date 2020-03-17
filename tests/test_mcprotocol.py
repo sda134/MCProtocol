@@ -18,17 +18,22 @@ mcprotocol.config.PROTOCOL = Protocol.TCP_IP
 mc_proc = mcprotocol.MCProtocol(cpu_type= CpuType.FX5UCPU)
 
 # 単一デバイスの読み書き
-test1_singledev_16_rd = mc_proc.get_device('D108', FxDataType.Signed16)
-test1_singledev_32_rd = mc_proc.get_device('D108', FxDataType.Signed32)
-test1_singledev_fl_rd = mc_proc.get_device('D108', FxDataType.Float)
+test1_single_16_rd = mc_proc.get_device('D100', FxDataType.Signed16)
+test1_single_u32_rd = mc_proc.get_device('D102', FxDataType.Unsigned32)
+test1_single_fl_rd = mc_proc.get_device('D104', FxDataType.Float)
+print(test1_single_16_rd)
+
+test1_single_16_wr = mc_proc.set_device('D100', 123, FxDataType.Signed16)
+test1_single_u32_wr = mc_proc.set_device('D102', 1234567, FxDataType.Unsigned32, )
+test1_single_fl_wr = mc_proc.set_device('D104', 1234.56789, FxDataType.Float)
 
 
 # 連続デバイスの読み書き
-test2_listdev_16_rd = mc_proc.get_device_list('D100', 4, FxDataType.Signed16)
-test2_listdev_u32_rd = mc_proc.get_device_list('D100', 4, FxDataType.Unsigned32)
-test2_listdev_fl_rd = mc_proc.get_device_list('D100', 4, FxDataType.Float)
+test2_list_16_rd = mc_proc.get_device_list('D110', 4, FxDataType.Signed16)
+test2_list_u32_rd = mc_proc.get_device_list('D112', 4, FxDataType.Unsigned32)
+test2_list_fl_rd = mc_proc.get_device_list('D114', 4, FxDataType.Float)
 
-test2_listdev_wr = mc_proc.set_device_list('D100', [10,2.5,(2 ** 32)], FxDataType.Float)
+test2_listdev_wr = mc_proc.set_device_list('D110', [10,2.5,(2 ** 8)], FxDataType.Signed16)
 
 
 # ランダムデバイスの読み書き

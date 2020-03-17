@@ -27,3 +27,6 @@ I_O_NUMBER = 1023                       # 0x03, 0xFF となる(int16)
 UNIT_NUMBER =0x00                       # ユニット番号
 
 MONITOR_TIMER = 10                      # 監視タイマ
+
+MONITOR_SENDING_BYTES = False           # 送信バイトをprint する
+MONITOR_RECEIVED_BYTES = False          # 送信バイトをprint する
