@@ -5,7 +5,7 @@ import unittest
 
 import mcprotocol
 from mcprotocol.classes import CpuType
-from mcprotocol.fxdevice import FxDevice, FxDataType, UnitDevice
+from mcprotocol.fxdevice import FxDevice, FxDataType
 
 
 # CPU 毎に通信プロトコルが異なるので、
@@ -13,22 +13,21 @@ from mcprotocol.fxdevice import FxDevice, FxDataType, UnitDevice
 
 
 # 通常使用のテスト
-fx1 = FxDevice('D100', fx_data_type= FxDataType.Float)
-fx1.value = 3.14159
-byte_data1 = fx1.value_to_bytes()
-for b in byte_data1:
-    print(int(b))
+fx_d = FxDevice('D100', fx_data_type= FxDataType.Float)
+fx_m = FxDevice('M100', fx_data_type= FxDataType.Float)
 
 # byte変換のテスト
-fx2 = FxDevice('D102')
-fx2.fxdatatype = FxDataType.Float   # 後でデータ型を変える
-
-fx2.set_value_from_bytes([0x01,0x02,0x03,0x04,0x05])    # byte数不足
-fx2.set_value_from_bytes([0x01,0x02,0x03])              # byte数過多
-byte_data2 = fx2.value_to_bytes()
-print('hoge')
+#fx_byte = FxDevice('D102')
+#fx_byte.fxdatatype = FxDataType.Float   # 後でデータ型を変える
+#for b in fx_byte.value_to_bytes():
+#    print(int(b))
 
 
-test_str = '1'
-test = int(test_str)
-unit1 = UnitDevice('U1\\D6016')
+# 様々な特殊デバイス変換
+fx_index = FxDevice('D100Z1')
+fx_unit = FxDevice('U1\\G6016')
+fx_rcpu = FxDevice('U1\\D100')
+
+print(repr(fx_index))
+print(repr(fx_unit))
+print(repr(fx_rcpu))

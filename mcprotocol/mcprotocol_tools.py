@@ -6,7 +6,7 @@ from typing import List, Optional
 
 from . import config
 from .classes import CpuType,CPUSeries,PacketType, Protocol, EtherFrame, SerialFrameID
-from .fxdevice import FxDevice, FxDataType
+from .fxdevice import FxDevice, FxDataType, FxDeviceType
 
 
 def get_route_bytes() -> bytearray:
@@ -30,6 +30,15 @@ def get_device_bytes(fx_device: FxDevice) -> bytearray:
         dev_bytes = bytearray(fx_device.devicenumber.to_bytes(3, 'little'))
         dev_bytes.extend(fx_device.devicetype.to_bytes(1, 'little'))
     return dev_bytes
+
+'''
+    if fx_device.devicetype == FxDeviceType.LinqDirect:
+        dev_bytes.extend(bytearray([0x00,0x00,0x00,0x00,0xf9]))
+    elif fx_device.devicetype == FxDeviceType.UnitBuffer:
+        dev_bytes.extend(bytearray([0x00,0x00,0x00,0x00,0xf8]))
+    elif not fx_device.unitnumber == None:
+        dev_bytes.extend(bytearray([0x00,0x00,0x00,0x00,0xfa]))
+'''
 
 
 def socket_send(sending_data:bytearray) -> Optional[bytearray]:    

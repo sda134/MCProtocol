@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 #coding: UTF-8
 
+# .NET 版から必要部分だけを抜粋
 # このモジュールは単体でも動くように設計する。 
 
 import struct
@@ -55,7 +56,6 @@ class FxDeviceType(IntEnum):
         elif(self.value == FxDeviceType.Timer_Contact): return 'TS'
         elif(self.value == FxDeviceType.Timer_Coil): return 'TC'
         elif(self.value == FxDeviceType.Timer_Value): return 'TN'
-        else: return ''
 
 
 class FxDataType(IntEnum):
@@ -77,7 +77,7 @@ class FxDataType(IntEnum):
         elif(self.value == FxDataType.BCD16): return 1
         elif(self.value == FxDataType.BCD32): return 2
         elif(self.value == FxDataType.Bit): return 1
-        else: return None   # None はまずいかも？20.03.18
+        else: return None
 
 
 class FxNumberSystem(IntEnum):
@@ -101,128 +101,92 @@ elif CPUSeries == CPUSeries.F_Series or CPUSeries == CPUSeries.iQ_F:
 
 class FxDevice:
     # FxDevice.TryPerce で使う dict     変換アルゴリズムの為、文字数の多い順にする
-    __device_name_dict = {          # 文字列, 番号システム(16進など)，強制のデータ型
-        FxDeviceType.Timer_Contact : ('TS', FxNumberSystem.Decimal, FxDataType.Bit),
-        FxDeviceType.Timer_Coil : ('TC', FxNumberSystem.Decimal, FxDataType.Bit),
-        FxDeviceType.Timer_Value : ('TN', FxNumberSystem.Decimal, FxDataType.Signed16),
+    __device_name_dict = {
+        FxDeviceType.Timer_Contact : ('TS', FxNumberSystem.Decimal),
+        FxDeviceType.Timer_Coil : ('TC', FxNumberSystem.Decimal),
+        FxDeviceType.Timer_Value : ('TN', FxNumberSystem.Decimal),
 
-        FxDeviceType.InputSignal : ('X', num_sys_xy, FxDataType.Bit),
-        FxDeviceType.OutputSignal : ('Y',num_sys_xy, FxDataType.Bit),
-        FxDeviceType.InnerRelay : ('M',FxNumberSystem.Decimal, FxDataType.Bit),
-        FxDeviceType.DataRegister : ('D', FxNumberSystem.Decimal, None),
+        FxDeviceType.InputSignal : ('X', num_sys_xy),
+        FxDeviceType.OutputSignal : ('Y',num_sys_xy),
+        FxDeviceType.InnerRelay : ('M',FxNumberSystem.Decimal),
+        FxDeviceType.DataRegister : ('D', FxNumberSystem.Decimal),
     }
 
     def __init__(self, device_name:str, fx_data_type = FxDataType.Signed16, value = 0): # コンストラクタ
-        # 入力値確認
-        if not isinstance(device_name, str):
-            raise ValueError('device_name must be str') # init で例外は△？ 19.07.15
-        
-        # 初期値設定の必要な private member
+        self.__device_number =-1
+        self.__unit_number:Optional[int] = None
+        self.__fx_data_type = FxDataType.Signed16
+        self.__value: Union[int, float] = 0
         self.__number_system = FxNumberSystem.Decimal
-
-        # None が標準の private member
-        self.__deviceLetter:Optional[str] = None
-        self.__index_register: Optional[int] = None
-        self.__unit_number: Optional[int] = None
-        self.__unit_index: Optional[int] = None
-        self.__fx_device_type: Optional[FxDeviceType] = None
-        
-        # 引数の値を private member に代入
         self.__fx_data_type = fx_data_type
-        
-        # 大文字に変換
-        dev_str_upper = str.upper(device_name)
 
-        try:
-            # ￥の有無で処理を変える
-            slush_idx = device_name.find('\\')
-            if not slush_idx == -1:
-                unit_str = device_name[:slush_idx]
-                number_str = device_name[slush_idx+1:]
-                if unit_str[:1] == 'U':                
-                    self.unitnumber = int(unit_str[1:])
-                    if number_str[:2] == 'HG':          # 念のため文字数の多い方からやるべき
-                        self.__fx_device_type = FxDeviceType.UnitBufferHG
-                        self.devicenumber = int(number_str[2:])
-                    elif number_str[:1] == 'G':                    
-                        self.devicetype = FxDeviceType.UnitBuffer
-                        self.devicenumber = int(number_str[1:])
-                    else:
-                        inner_fx = FxDevice(number_str)  # 回帰呼び出し　※問題なく実行された 20.03.18
-                        self.devicetype = inner_fx.devicetype
-                        self.devicenumber = inner_fx.devicenumber
-                elif unit_str[:1] == 'J':
-                    self.unitnumber = int(unit_str[1:])
-                    self.devicetype = FxDeviceType.LinqDirect
-                    self.devicenumber = int(number_str)
-                else:                               # ￥があって，その他の文字列が
-                    self.__unit_number = None       # デバイス書式に準じていない，と言う事
-                    self.__fx_device_type = None    # self = None みたいな感じでもいいくらい
-            else:
-                index_str = ''
-                # ￥の有無で処理を変える
-                for z in ['LZ', 'Z']:
-                    index_idx = dev_str_upper.find(z)
-                    if not index_idx == -1:
-                        dev_str_upper = device_name[:index_idx]
-                        z_num_str = device_name[index_idx + len(z):]
-                        self.__index_register = int(z_num_str, 10)
-                        
-                # デバイスレターを長さ順に並び替える
-                devList = sorted(self.__device_name_dict.items(), key = lambda x: x[1], reverse = True)
-                # 一文字ずつ検索して、発見したら割り当てる
-                for dev in devList:
-                    if dev_str_upper.startswith(dev[1][0]):   # tuple である点に注意
-                        self.__fx_device_type = dev[0]                    
-                        self.__number_system = dev[1][1]
-                        self.__deviceLetter = dev[1][0]
-                        
-                        forced_type = dev[1][2]
-                        if not forced_type == None:
-                            self.__fx_data_type = forced_type
-
-                        numStr = dev_str_upper[len(dev[1][0]):len(dev_str_upper)]                        
-                        if self.__number_system == FxNumberSystem.Hexadecimal:
-                            self.__device_number = int(numStr,16)
-                        elif self.__number_system == FxNumberSystem.Octal:
-                            self.__device_number = int(numStr,8)
-                        else:
-                            self.__device_number = int(numStr, 10)
-                                    
-        except Exception as e:
-            print('Exception: %s' % e)
-        
-        # データ型の強制変換があるので，value の代入は最後に行う
         if self.__fx_data_type == FxDataType.Float:
             self.__value = float(value)
         else:
             self.__value = int(value)
 
+        if not isinstance(device_name, str):
+            raise ValueError('deviceName must be str') # init で例外は△？ 19.07.15
+        try:
+            # 大文字に変換
+            upper_name = str.upper(device_name)
+
+            # デバイスレターを長さ順に並び替える
+            devList = sorted(self.__device_name_dict.items(), key = lambda x: x[1], reverse = True)
+
+            # 一文字ずつ検索して、発見したら割り当てる
+            for dev in devList:
+                if upper_name.startswith(dev[1][0]):   # tuple である点に注意
+                    self.__number_system = dev[1][1]
+                    numStr = device_name[len(dev[1][0]):len(device_name)]
+                    self.__deviceLetter = dev[1][0]
+                    self.__device_type = dev[0]                    
+                    if self.__number_system == FxNumberSystem.Hexadecimal:
+                        self.__device_number = int(numStr,16)
+                    elif self.__number_system == FxNumberSystem.Octal:
+                        self.__device_number = int(numStr,8)
+                    else:
+                        self.__device_number = int(numStr, 10)
+                else:
+                    pass
         
+        except Exception as e:
+            print('Exception: %s' % e)
+
+        if self.__device_number== -1:
+            self.__device_type = None
+
 
     def __str__(self):              # toString() の様な物。printなどで文字列に変換する場合に呼び出される。
-        unit_str = '' if self.__unit_number == None else 'U{0}\\'.format(self.__unit_number)
-        type_str = str(self.__fx_device_type)
-        num_str = self.__device_number
-        idx_str = '' if self.__index_register == None else 'Z{0}'.format(self.__index_register)
-        return '{0}{1}{2}{3}'.format(unit_str,type_str,num_str, idx_str)
+        return '{0}{1}'.format(str(self.__device_type), self.__device_number)
 
 
     def __repr__(self):             # __str__ に似ているが、repr() を使った時の結果
-        unit_str = '' if self.__unit_number == None else 'U{0}\\'.format(self.__unit_number)
-        type_str = str(self.__fx_device_type)
-        num_str = self.__device_number
-        val_str = self.__value
-        idx_str = '' if self.__index_register == None else 'Z{0}'.format(self.__index_register)
-        return '{0}{1}{2}{3} [{4}]'.format(unit_str,type_str,num_str, idx_str, val_str)
+        return '{0}{1} [{2}]'.format(
+            str(self.__device_type), self.__device_number, str(self.value)
+            )
 
 
     @property                       # プロパティ get
     def devicetype(self) -> FxDeviceType:
-        return self.__fx_device_type
+        return self.__device_type
     @devicetype.setter              # プロパティ set
     def devicetype(self, arg):    
-        self.__fx_device_type = arg
+        self.__device_type = arg
+
+
+    @property                       # プロパティ get
+    def numbersystem(self) -> FxNumberSystem:
+        return self.__number_system
+
+
+    @property                       # プロパティ get
+    def fxdatatype(self) -> FxDataType:
+        return self.__fx_data_type
+    @fxdatatype.setter              # プロパティ set
+    def fxdatatype(self, arg):    
+        self.__fx_data_type = arg
+
 
     @property                       # プロパティ get
     def devicenumber(self) -> int:
@@ -241,35 +205,14 @@ class FxDevice:
             self.__value = float(arg)
         else:
             self.__value = int(arg)
-    
+
 
     @property                       # プロパティ get
-    def fxdatatype(self) -> FxDataType:
-        return self.__fx_data_type
-    @fxdatatype.setter              # プロパティ set
-    def fxdatatype(self, arg):    
-        self.__fx_data_type = arg
-
-    @property                       # プロパティ get
-    def indexregister(self) -> Optional[int]:
-        return self.__index_register
-    @indexregister.setter           # プロパティ set
-    def unitnumber(self, arg):    
-        self.__index_register = arg
-
-    @property                       # プロパティ get
-    def unitnumber(self) -> Optional[int]:
+    def unitnumber(self) -> FxDataType:
         return self.__unit_number
     @unitnumber.setter              # プロパティ set
     def unitnumber(self, arg):    
         self.__unit_number = arg
-
-
-
-    @property                       # プロパティ get
-    def numbersystem(self) -> FxNumberSystem:
-        return self.__number_system
-
 
 
 
@@ -304,5 +247,35 @@ class FxDevice:
         pass
 
 
+
+
+class UnitDevice(FxDevice):
+    def __init__(self, device_name:str):
+        idx = device_name.find('\\')
+        if not idx == -1:
+            unit_str = device_name[:idx]
+            number_str = device_name[idx+1:]
+            if unit_str[:1] == 'U':                
+                self.unitnumber = int(unit_str[1:])
+                if number_str[:1] == 'G':                    
+                    self.devicetype = FxDeviceType.UnitBuffer
+                    self.devicenumber = int(number_str[1:])
+                    print('hoge')
+                elif number_str[:2] == 'HG':
+                    self.devicetype = FxDeviceType.UnitBufferHG
+                    self.devicenumber = int(number_str[2:])
+                else:
+                    fx = super().__init__(number_str)
+                    self.devicetype = fx.devicetype
+                    self.devicenumber = fx.devicenumber
+            elif unit_str[:1] == 'J':
+                self.unitnumber = int(unit_str[1:])
+                self.devicetype = FxDeviceType.LinqDirect
+                self.devicenumber = int(number_str)
+                print('hoge')
+            else:                               # ￥があって，その他の文字列が
+                self.__unit_number = None       # デバイス書式に準じていない，と言う事
+                self.__fx_device_type = None    # self = None みたいな感じでもいいくらい
+                print('hoge')
 
 
