@@ -8,25 +8,16 @@ from itertools import groupby
 
 from . import config, mcprotocol_tools
 from .fxdevice import FxDevice, FxDataType
-from .classes import EtherFrame, CPUSeries
+from .classes import EtherFrame, CPUSeries, MCCommand
 
 
 
 def get_device_list(start_device:str, device_count:int, fx_datatype: FxDataType = FxDataType.Signed16 )-> Union[None,int, List[Union[int,float]]]:    # MCProtocol的にはこっちがメインメソッドらしい
     rqst_bytes = bytearray(                         #
         config.MONITOR_TIMER.to_bytes(2, 'little')) # 監視タイマ(2byte)
-    is_all_bit = False                              # 全てビットなら，「ビット単位での電文」を利用する
-    if is_all_bit:                                  # 但し「ビット単位の電文」の実装をする気は今のところない　20.03.13 
-        if config.CPU_SERIES == CPUSeries.iQ_R:
-            rqst_bytes.extend([0x01,0x04,0x03,0x00])   # ビット，iQ-R　(コマンド2byte, サブコマンド2byte)
-        else:
-            rqst_bytes.extend([0x01,0x04,0x01,0x00])   # ビット，Q/L
-    else:
-        if config.CPU_SERIES == CPUSeries.iQ_R:
-            rqst_bytes.extend([0x01,0x04,0x02,0x00])   # ワード，iQ-R
-        else:
-            rqst_bytes.extend([0x01,0x04,0x00,0x00])   # ワード，Q/L
 
+    rqst_bytes.extend(mcprotocol_tools.get_command_bytes(MCCommand.Read_List))  # コマンドを示すデータバイト
+        
     fx_dev = FxDevice(start_device)                                     # 開始デバイス
     rqst_bytes.extend(mcprotocol_tools.get_device_bytes(fx_dev)) 
 
@@ -65,17 +56,7 @@ def set_device_list(start_device:str, value_list: List[Union[int, float]], fx_da
     rqst_bytes = bytearray(                         #
         config.MONITOR_TIMER.to_bytes(2, 'little')) # 監視タイマ(2byte)
 
-    is_all_bit = False                              # 全てビットなら，「ビット単位での電文」を利用する
-    if is_all_bit:                                  # 但し「ビット単位の電文」の実装をする気は今のところない　20.03.13 
-        if config.CPU_SERIES == CPUSeries.iQ_R:
-            rqst_bytes.extend([0x01,0x14,0x03,0x00])   # ビット，iQ-R
-        else:
-            rqst_bytes.extend([0x01,0x14,0x01,0x00])   # ビット，Q/L
-    else:
-        if config.CPU_SERIES == CPUSeries.iQ_R:
-            rqst_bytes.extend([0x01,0x14,0x02,0x00])   # ワード，iQ-R
-        else:
-            rqst_bytes.extend([0x01,0x14,0x00,0x00])   # ワード，Q/L
+    rqst_bytes.extend(mcprotocol_tools.get_command_bytes(MCCommand.Write_List))  # コマンドを示すデータバイト
     
     fx_dev = FxDevice(start_device)                                 # 開始デバイス
     rqst_bytes.extend(mcprotocol_tools.get_device_bytes(fx_dev))    # 先頭デバイス番号＋デバイスコード
@@ -101,10 +82,11 @@ def set_device_list(start_device:str, value_list: List[Union[int, float]], fx_da
 def get_device_random(device_list:List[FxDevice]):
     rqst_bytes = bytearray(                         #
         config.MONITOR_TIMER.to_bytes(2, 'little')) # 監視タイマ(2byte)
-    if config.CPU_SERIES == CPUSeries.iQ_R:
-        rqst_bytes.extend([0x03,0x04,0x02,0x00])   # ワード，iQ-R   モニタ条件を指定　は無視 20.03.16
+
+    if config.CPU_SERIES == CPUSeries.iQ_R:         # Random 読みはbit 版がないらしい
+        rqst_bytes.extend([0x03,0x04,0x02,0x00])    # ワード，iQ-R   モニタ条件を指定　は無視 20.03.16
     else:
-        rqst_bytes.extend([0x03,0x04,0x00,0x00])   # ワード，Q/L
+        rqst_bytes.extend([0x03,0x04,0x00,0x00])    # ワード，Q/L
     
     # single word とdouble word を分ける    ※良いgroupbyが見つからなかった
     single_list:List[FxDevice] =[]
@@ -151,22 +133,15 @@ def get_device_random(device_list:List[FxDevice]):
         dev.set_value_from_bytes(data_bytes[count:count+byte_length])
         count += byte_length
 
+    return 0
+
 
 def set_device_random(device_list:List[FxDevice]):
     rqst_bytes = bytearray(                         #
         config.MONITOR_TIMER.to_bytes(2, 'little')) # 監視タイマ(2byte)
-    is_all_bit = False                              # 全てビットなら，「ビット単位での電文」を利用する
-    if is_all_bit:                                  # 但し「ビット単位の電文」の実装をする気は今のところない　20.03.13 
-        if config.CPU_SERIES == CPUSeries.iQ_R:
-            rqst_bytes.extend([0x02,0x14,0x03,0x00])   # ビット，iQ-R
-        else:
-            rqst_bytes.extend([0x02,0x14,0x01,0x00])   # ビット，Q/L
-    else:
-        if config.CPU_SERIES == CPUSeries.iQ_R:
-            rqst_bytes.extend([0x02,0x14,0x02,0x00])   # ワード，iQ-R
-        else:
-            rqst_bytes.extend([0x02,0x14,0x00,0x00])   # ワード，Q/L
-    
+        
+    rqst_bytes.extend(mcprotocol_tools.get_command_bytes(MCCommand.Write_Random))  # コマンドを示すデータバイト
+        
     # single word とdouble word を分ける    ※良いgroupbyが見つからなかった
     single_list:List[FxDevice] =[]
     double_list:List[FxDevice] =[]
@@ -200,6 +175,10 @@ def set_device_random(device_list:List[FxDevice]):
     ret_code = distinguished[0]
     return ret_code
 
+
+def buffer_test():
+    mcprotocol_tools.get_command_bytes(MCCommand.Write_List)
+    pass
 
 def get_unit_buffuer():
     rqst_bytes = bytearray(                         #

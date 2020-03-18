@@ -96,8 +96,6 @@ class MCProtocol():
                 return protcol_eth.set_device_random(device_list)
 
 
-    def read_buffer(self, start_address, byte_array):
-        pass
+    def buffer_test(self):
+        return protcol_eth.buffer_test()
 
-    def write_buffer(self, start_address, byte_array):
-        pass

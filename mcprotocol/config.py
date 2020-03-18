@@ -14,12 +14,12 @@ DESTINATION_IP = '192.168.1.1'
 DESTINATION_PORT = 5001
 PACKET_TYPE = PacketType.Binary
 
-PROTOCOL = Protocol.TCP_IP
+PROTOCOL: Protocol = Protocol.TCP_IP
 
-SERIAL_FORMAT = SerialFormat.Format_4   # 形式
-ETHERNET_FRAME = EtherFrame.Ether_1E    # 
-SERIAL_FRAME = SerialFrameID.Serial_1C  # 
-CPU_SERIES = CPUSeries.iQ_R
+SERIAL_FORMAT:SerialFormat = SerialFormat.Format_4   # 形式
+ETHERNET_FRAME:EtherFrame = EtherFrame.Ether_1E    # 
+SERIAL_FRAME:SerialFrameID = SerialFrameID.Serial_1C  # 
+CPU_SERIES:CPUSeries = CPUSeries.iQ_R
 
 NETWORK_NUMBER= 0x00
 PC_NUMBER= 0xFF                         # 255

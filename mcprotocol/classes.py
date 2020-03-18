@@ -12,7 +12,6 @@ class CPUSeries(Enum):
     L_Series = 4
     F_Series = 5
 
-
 class EtherFrame(Enum):
     Nothing = 0
     Ether_1E = 1
@@ -49,6 +48,14 @@ class UnitControl(Enum):
     RemoteLatchClear = 4
     RemoteReset = 5
     CPU_Name = 6
+
+class MCCommand(IntEnum):    # フレーム識別番号
+    Read_List = 0x0401
+    Write_List = 0x1401
+    Read_Random = 0x0403
+    Write_Random = 0x1402
+    Monitor_Set = 0x0801
+    Monitor_Get = 0x0802
 
 class CpuType(IntEnum):
         

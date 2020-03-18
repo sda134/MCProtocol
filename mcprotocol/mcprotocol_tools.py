@@ -5,7 +5,7 @@ import socket
 from typing import List, Optional
 
 from . import config
-from .classes import CpuType,CPUSeries,PacketType, Protocol, EtherFrame, SerialFrameID
+from .classes import CpuType,CPUSeries,PacketType, Protocol, EtherFrame, SerialFrameID, MCCommand, SerialFrameID
 from .fxdevice import FxDevice, FxDataType, FxDeviceType
 
 
@@ -22,6 +22,33 @@ def get_route_bytes() -> bytearray:
     return rt_bytes
 
 
+def get_command_bytes(command:MCCommand, is_bit_command:bool = False, extention:bool = False) -> bytearray:
+    cmd_bytes = bytearray([])
+    if config.PROTOCOL == Protocol.Serial and (config.SERIAL_FRAME == SerialFrameID.Serial_1C or config.SERIAL_FRAME == SerialFrameID.Serial_2C):
+        #print('1C or 2C')
+        pass
+    elif not config.PROTOCOL == Protocol.Serial and config.ETHERNET_FRAME == EtherFrame.Ether_1E:
+        #print('1E')
+        pass
+    else:
+        #print('3E/4E or 3C/4C')
+        if command == MCCommand.Monitor_Get or command == MCCommand.Monitor_Set:
+            pass
+        else:
+            cmd_bytes.extend(command.to_bytes(2,'little'))            
+            if is_bit_command:                                  # 但し「ビット単位の電文」の実装をする気は今のところない　20.03.13 
+                if config.CPU_SERIES == CPUSeries.iQ_R:
+                    cmd_bytes.extend([0x03,0x00])
+                else:
+                    cmd_bytes.extend([0x01,0x00])
+            else:
+                if config.CPU_SERIES == CPUSeries.iQ_R:
+                    cmd_bytes.extend([0x02,0x00])
+                else:
+                    cmd_bytes.extend([0x00,0x00])
+    return cmd_bytes
+
+
 def get_device_bytes(fx_device: FxDevice) -> bytearray:
     if config.CPU_SERIES == CPUSeries.iQ_R:
         dev_bytes = bytearray(fx_device.devicenumber.to_bytes(4, 'little'))
@@ -31,14 +58,6 @@ def get_device_bytes(fx_device: FxDevice) -> bytearray:
         dev_bytes.extend(fx_device.devicetype.to_bytes(1, 'little'))
     return dev_bytes
 
-'''
-    if fx_device.devicetype == FxDeviceType.LinqDirect:
-        dev_bytes.extend(bytearray([0x00,0x00,0x00,0x00,0xf9]))
-    elif fx_device.devicetype == FxDeviceType.UnitBuffer:
-        dev_bytes.extend(bytearray([0x00,0x00,0x00,0x00,0xf8]))
-    elif not fx_device.unitnumber == None:
-        dev_bytes.extend(bytearray([0x00,0x00,0x00,0x00,0xfa]))
-'''
 
 
 def socket_send(sending_data:bytearray) -> Optional[bytearray]:    
