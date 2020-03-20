@@ -140,20 +140,20 @@ class FxDevice:
                 unit_str = device_name[:slush_idx]
                 number_str = device_name[slush_idx+1:]
                 if unit_str[:1] == 'U':                
-                    self.unitnumber = int(unit_str[1:])
+                    self.__unit_number = int(unit_str[1:])
                     if number_str[:2] == 'HG':          # 念のため文字数の多い方からやるべき
                         self.__fx_device_type = FxDeviceType.UnitBufferHG
-                        self.devicenumber = int(number_str[2:])
+                        self.__device_number = int(number_str[2:])
                     elif number_str[:1] == 'G':                    
-                        self.devicetype = FxDeviceType.UnitBuffer
-                        self.devicenumber = int(number_str[1:])
+                        self.__fx_device_type = FxDeviceType.UnitBuffer
+                        self.__device_number = int(number_str[1:])
                     else:
                         inner_fx = FxDevice(number_str)  # 回帰呼び出し　※問題なく実行された 20.03.18
-                        self.devicetype = inner_fx.devicetype
-                        self.devicenumber = inner_fx.devicenumber
+                        self.__fx_device_type = inner_fx.fxdevicetype
+                        self.__device_number = inner_fx.devicenumber
                 elif unit_str[:1] == 'J':
-                    self.unitnumber = int(unit_str[1:])
-                    self.devicetype = FxDeviceType.LinqDirect
+                    self.__unit_number = int(unit_str[1:])
+                    self.__fx_device_type = FxDeviceType.LinqDirect
                     self.devicenumber = int(number_str)
                 else:                               # ￥があって，その他の文字列が
                     self.__unit_number = None       # デバイス書式に準じていない，と言う事
@@ -199,7 +199,6 @@ class FxDevice:
             self.__value = int(value)
 
         
-
     def __str__(self):              # toString() の様な物。printなどで文字列に変換する場合に呼び出される。
         unit_str = '' if self.__unit_number == None else 'U{0}\\'.format(self.__unit_number)
         type_str = str(self.__fx_device_type)
@@ -218,10 +217,10 @@ class FxDevice:
 
 
     @property                       # プロパティ get
-    def devicetype(self) -> FxDeviceType:
+    def fxdevicetype(self) -> FxDeviceType:
         return self.__fx_device_type
-    @devicetype.setter              # プロパティ set
-    def devicetype(self, arg):    
+    @fxdevicetype.setter              # プロパティ set
+    def fxdevicetype(self, arg):    
         self.__fx_device_type = arg
 
     @property                       # プロパティ get
@@ -245,7 +244,7 @@ class FxDevice:
 
     @property                       # プロパティ get
     def fxdatatype(self) -> FxDataType:
-        return self.__fx_data_type
+        return self.__fx_data_type    
     @fxdatatype.setter              # プロパティ set
     def fxdatatype(self, arg):    
         self.__fx_data_type = arg
@@ -254,7 +253,7 @@ class FxDevice:
     def indexregister(self) -> Optional[int]:
         return self.__index_register
     @indexregister.setter           # プロパティ set
-    def unitnumber(self, arg):    
+    def indexregister(self, arg):    
         self.__index_register = arg
 
     @property                       # プロパティ get
@@ -265,12 +264,13 @@ class FxDevice:
         self.__unit_number = arg
 
 
-
     @property                       # プロパティ get
     def numbersystem(self) -> FxNumberSystem:
         return self.__number_system
 
-
+    @property                       # プロパティ get
+    def is_extended_device(self) -> bool:
+        return not self.__unit_number == None or not self.__index_register == None
 
 
     def value_to_bytes(self)-> bytes:
@@ -284,6 +284,8 @@ class FxDevice:
             return int(self.__value).to_bytes(4, 'little',signed=False)
         elif self.__fx_data_type == FxDataType.Float:
             return struct.pack('<f', float(self.__value))
+        elif self.__fx_data_type == FxDataType.Bit:
+            return int(self.__value).to_bytes(2, 'little',signed=True)
         pass
 
     def set_value_from_bytes(self, byte_data: Sequence[int]):
@@ -301,6 +303,8 @@ class FxDevice:
                 array.append(0x00)
             byte_data = bytes(array)        # 多くても怒られる →つまりbyte 数が4 の倍数である必用がある
             self.__value = float(struct.unpack('f', byte_data[:4])[0])
+        elif self.__fx_data_type == FxDataType.Bit:
+            self.__value = int.from_bytes(byte_data[:2],'little', signed=True)  # temporary Bitは16bitと同じにする
         pass
 
 

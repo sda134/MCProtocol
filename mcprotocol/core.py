@@ -94,8 +94,3 @@ class MCProtocol():
                 pass
             else:
                 return protcol_eth.set_device_random(device_list)
-
-
-    def buffer_test(self):
-        return protcol_eth.buffer_test()
-
