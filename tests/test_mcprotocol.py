@@ -9,7 +9,7 @@ from mcprotocol.classes import CpuType, Protocol
 from mcprotocol.fxdevice import FxDevice, FxDataType
 
 # この様に設定する
-mcprotocol.config.DESTINATION_IP = '192.168.3.250'
+mcprotocol.config.DESTINATION_IP = '192.168.1.15'
 mcprotocol.config.DESTINATION_PORT = 6001
 mcprotocol.config.PROTOCOL = Protocol.TCP_IP
 
@@ -18,19 +18,18 @@ mcprotocol.config.PROTOCOL = Protocol.TCP_IP
 mc_proc = mcprotocol.MCProtocol(cpu_type= CpuType.FX5UCPU)
 
 # 単一デバイスの読み書き
-#single_16_rd = mc_proc.get_device('D100', FxDataType.Signed16)
+single_16_rd = mc_proc.get_device('D100', FxDataType.Signed16)
 #single_u32_rd = mc_proc.get_device('D102', FxDataType.Unsigned32)
 #single_fl_rd = mc_proc.get_device('D104', FxDataType.Float)
 #single_16_wr = mc_proc.set_device('D100', 123, FxDataType.Signed16)
-#test1_single_u32_wr = mc_proc.set_device('D102', 1234567, FxDataType.Unsigned32, )
-#test1_single_fl_wr = mc_proc.set_device('D104', 1234.56789, FxDataType.Float)
+#single_u32_wr = mc_proc.set_device('D102', 1234567, FxDataType.Unsigned32, )
+#single_fl_wr = mc_proc.set_device('D104', 1234.56789, FxDataType.Float)
+print(single_16_rd)
 
+# ユニットバッファの読み書き
+#unit_buff_rd = mc_proc.get_device('U1\\G70', FxDataType.Signed16)
+#unit_buff_wr = mc_proc.set_device('U1\\G36674', 1, FxDataType.Signed16) 
 
-#unit_buff_rd = mc_proc.get_device('U1\\G70', FxDataType.Signed16)        # 軸１の原点復帰方法 =6(16bit)
-#unit_buff_wr = mc_proc.set_device('U1\\G36674', 1, FxDataType.Signed16)  # 軸２のカム番号変更
-
-single_16_wr = mc_proc.set_device('M136',1, FxDataType.Signed16)
-single_16_wr = mc_proc.set_device('M136',0, FxDataType.Signed16)
 
 # 連続デバイスの読み書き
 test2_list_16_rd = mc_proc.get_device_list('D110', 4, FxDataType.Signed16)
