@@ -1,17 +1,14 @@
 #!/usr/bin/env python
 #coding: UTF-8
 
-import socket
 from typing import (Optional, Union, List, Dict)
 
-from itertools import groupby
-
-from . import config, tools
-from .fxdevice import FxDevice, FxDataType, FxDeviceType
-from .classes import EtherFrame, CPUSeries, MCCommand
+from mcprotocol import config, tools
+from mcprotocol.classes import EtherFrame, CPUSeries, MCCommand
+from mcprotocol.fxdevice import FxDevice, FxDataType, FxDeviceType
 
 
-def get_device_list(start_device:str, device_count:int, fx_datatype: FxDataType = FxDataType.Signed16 )-> Union[None,int, List[Union[int,float]]]:    # MCProtocol的にはこっちがメインメソッドらしい
+def get_device_list(start_device: str, device_count: int, fx_datatype: FxDataType = FxDataType.Signed16 )-> Union[None,int, List[Union[int,float]]]:    # MCProtocol的にはこっちがメインメソッドらしい
     rqst_bytes = bytearray(config.MONITOR_TIMER.to_bytes(2, 'little'))  # 監視タイマ(2byte)
     fx_dev = FxDevice(start_device)                                     # 先頭デバイスを文字列から扱いやすい形に変換
 
@@ -49,8 +46,7 @@ def get_device_list(start_device:str, device_count:int, fx_datatype: FxDataType 
 
     return value_list
 
-
-def set_device_list(start_device:str, value_list: List[Union[int, float]], fx_datatype: FxDataType = FxDataType.Signed16 )-> None:
+def set_device_list(start_device: str, value_list: List[Union[int, float]], fx_datatype: FxDataType = FxDataType.Signed16 )-> None:
     rqst_bytes = bytearray(config.MONITOR_TIMER.to_bytes(2, 'little'))  # 監視タイマ(2byte)
     
     fx_dev = FxDevice(start_device)                                     # 先頭デバイスを文字列から扱いやすい形に変換
@@ -76,8 +72,7 @@ def set_device_list(start_device:str, value_list: List[Union[int, float]], fx_da
     ret_code = distinguished[0]
     return ret_code                                                     # set_device の場合は戻り値変換がないので，そのままの値を返しても良い。
 
-
-def get_device_random(device_list:List[FxDevice]):
+def get_device_random(device_list: List[FxDevice]):
     rqst_bytes = bytearray(                         #
         config.MONITOR_TIMER.to_bytes(2, 'little')) # 監視タイマ(2byte)
 
@@ -87,8 +82,8 @@ def get_device_random(device_list:List[FxDevice]):
         rqst_bytes.extend([0x03,0x04,0x00,0x00])    # ワード，Q/L
     
     # single word とdouble word を分ける    ※良いgroupbyが見つからなかった
-    single_list:List[FxDevice] =[]
-    double_list:List[FxDevice] =[]
+    single_list: List[FxDevice] =[]
+    double_list: List[FxDevice] =[]
     for dev in device_list:
         if dev.fxdatatype.get_word_length() == 1: single_list.append(dev)
         elif dev.fxdatatype.get_word_length() == 2: double_list.append(dev)
@@ -133,8 +128,7 @@ def get_device_random(device_list:List[FxDevice]):
 
     return 0
 
-
-def set_device_random(device_list:List[FxDevice]):
+def set_device_random(device_list: List[FxDevice]):
     rqst_bytes = bytearray(                         #
         config.MONITOR_TIMER.to_bytes(2, 'little')) # 監視タイマ(2byte)
         
@@ -174,7 +168,7 @@ def set_device_random(device_list:List[FxDevice]):
     return ret_code
 
 
-def buffer_test():                  # 20.03.20 不要
+def buffer_test():                  # 20.03.20 不要だが、20.03.30 くらいまで残しておく
     data = bytearray([
         0x00,0x00,                  # デバイス修飾間接指定 (デバイス用の Zインデックス の事)[20.03.19 これを忘れていた]
         0x46,0x00,0x00,             # デバイス番号 3byte = 46(dec) = 0x70(hex)
@@ -187,13 +181,4 @@ def buffer_test():                  # 20.03.20 不要
     ])
     pass
 
-
-
-def get_unit_buffuer():
-    rqst_bytes = bytearray(                         #
-        config.MONITOR_TIMER.to_bytes(2, 'little')) # 監視タイマ(2byte)
-    if config.CPU_SERIES == CPUSeries.iQ_R:
-        rqst_bytes.extend([0x00,0x00])   # ビット，iQ-R　(コマンド2byte)
-    else:
-        rqst_bytes.extend([0x00,0x00])   # ビット，Q/L
 

@@ -3,3 +3,9 @@
 ユニットデバイスへのアクセス
  protcol_eth などのレベルでは デバイス拡張用のメソッドを用意して置いて
  core で通常デバイスと拡張デバイスを振り分けてまとめてアクセスする？
+
+
+
+mcprotocol.classes ←　これ、どうにかならないか。
+　理想は import mcprotocol ですべて済む事
+　又は from mcprotocol import CpuType みたいな

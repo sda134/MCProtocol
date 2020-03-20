@@ -11,18 +11,18 @@ from .classes import CPUSeries
 
 
 class FxDeviceType(IntEnum):
-    InputSignal = 0x9C,    # 入力 [X]
-    OutputSignal = 0x9D,   # 出力 [Y]
-    InnerRelay = 0x90,     # 内部リレー [M]
-    DataRegister = 0xA8,   # データレジスタ [D]
+    InputSignal = 0x9C,             # 入力 [X]
+    OutputSignal = 0x9D,            # 出力 [Y]
+    InnerRelay = 0x90,              # 内部リレー [M]
+    DataRegister = 0xA8,            # データレジスタ [D]
 
-    Timer_Contact = 0xC1,  # タイマー接点 [TS]
-    Timer_Coil = 0xC0,     # タイマーコイル [TC]
-    Timer_Value = 0xC2,    # タイマー現在値 [TN]
+    Timer_Contact = 0xC1,           # タイマー接点 [TS]
+    Timer_Coil = 0xC0,              # タイマーコイル [TC]
+    Timer_Value = 0xC2,             # タイマー現在値 [TN]
 
     # 以下、未実装 20.03.17
-    SpecialRelay = 0x91,    # 特殊リレー [SM]
-    SpecialRegister = 0xA9, # 特殊レジスタ [SD]
+    SpecialRelay = 0x91,            # 特殊リレー [SM]
+    SpecialRegister = 0xA9,         # 特殊レジスタ [SD]
 
     IntegratedTimerContact = 0xC7,  # 積算タイマー接点 [STS]
     IntegratedTimer_Coil = 0xC6,    # 積算タイマーコイル [STC]
@@ -65,8 +65,8 @@ class FxDataType(IntEnum):
     Bit = 4,
     Unsigned16 = 11,
     Unsigned32 = 12,
-    BCD16 = 21,
-    BCD32 = 22,
+    # BCD16 = 21,   未だ使った事がないので，実装する気が起きない
+    # BCD32 = 22,
 
     def get_word_length(self):
         if(self.value == FxDataType.Signed16): return 1
@@ -74,8 +74,8 @@ class FxDataType(IntEnum):
         elif(self.value == FxDataType.Unsigned16): return 1
         elif(self.value == FxDataType.Unsigned32): return 2
         elif(self.value == FxDataType.Float): return 2
-        elif(self.value == FxDataType.BCD16): return 1
-        elif(self.value == FxDataType.BCD32): return 2
+        # elif(self.value == FxDataType.BCD16): return 1
+        # elif(self.value == FxDataType.BCD32): return 2
         elif(self.value == FxDataType.Bit): return 1
         else: return None   # None はまずいかも？20.03.18
 
@@ -288,6 +288,7 @@ class FxDevice:
             return int(self.__value).to_bytes(2, 'little',signed=True)
         pass
 
+
     def set_value_from_bytes(self, byte_data: Sequence[int]):
         if self.__fx_data_type == FxDataType.Signed16:
             self.__value = int.from_bytes(byte_data[:2],'little', signed=True)
@@ -306,7 +307,5 @@ class FxDevice:
         elif self.__fx_data_type == FxDataType.Bit:
             self.__value = int.from_bytes(byte_data[:2],'little', signed=True)  # temporary Bitは16bitと同じにする
         pass
-
-
 
 

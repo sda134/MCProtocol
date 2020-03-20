@@ -17,14 +17,15 @@ mcprotocol.config.PROTOCOL = Protocol.TCP_IP
 # クラス生成時に CPU情報を入れる事でプロトコル判断を行う
 mc_proc = mcprotocol.MCProtocol(cpu_type= CpuType.FX5UCPU)
 
+
 # 単一デバイスの読み書き
 single_16_rd = mc_proc.get_device('D100', FxDataType.Signed16)
-#single_u32_rd = mc_proc.get_device('D102', FxDataType.Unsigned32)
-#single_fl_rd = mc_proc.get_device('D104', FxDataType.Float)
+single_u32_rd = mc_proc.get_device('D102', FxDataType.Unsigned32)
+single_fl_rd = mc_proc.get_device('D104', FxDataType.Float)
 #single_16_wr = mc_proc.set_device('D100', 123, FxDataType.Signed16)
 #single_u32_wr = mc_proc.set_device('D102', 1234567, FxDataType.Unsigned32, )
 #single_fl_wr = mc_proc.set_device('D104', 1234.56789, FxDataType.Float)
-print(single_16_rd)
+
 
 # ユニットバッファの読み書き
 #unit_buff_rd = mc_proc.get_device('U1\\G70', FxDataType.Signed16)
