@@ -8,6 +8,8 @@ mcprotocol.config.DESTINATION_IP = '192.168.1.1' \n
 などと変更しても良い。
 '''
 
+import setuptools
+
 from .classes import PacketType, Protocol, SerialFrameID, EtherFrame, SerialFormat, CPUSeries
 
 DESTINATION_IP = '192.168.1.1'

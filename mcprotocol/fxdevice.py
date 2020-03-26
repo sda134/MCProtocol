@@ -1,7 +1,14 @@
 #!/usr/bin/env python
 #coding: UTF-8
 
-# このモジュールは単体でも動くように設計する。 
+'''
+三菱シーケンサで扱うデバイスを扱いやすくする為のモジュールです。\n
+fx_dev = FxDevice('D100', FxDataType.Signed16)\n
+この様に，文字列とデータ型を指定して下さい。
+'''
+
+
+# このモジュールは単体でも動くように設計する。 20.03.26まだ対応できてない
 
 import struct
 from typing import (Optional, Union, Sequence)
@@ -15,12 +22,13 @@ class FxDeviceType(IntEnum):
     OutputSignal = 0x9D,            # 出力 [Y]
     InnerRelay = 0x90,              # 内部リレー [M]
     DataRegister = 0xA8,            # データレジスタ [D]
+    FileRegister = 0xAF,            # ファイルレジスタ：ブロック切り替え方式 [R]
 
     Timer_Contact = 0xC1,           # タイマー接点 [TS]
     Timer_Coil = 0xC0,              # タイマーコイル [TC]
     Timer_Value = 0xC2,             # タイマー現在値 [TN]
 
-    # 以下、未実装 20.03.17
+    # 以下、未実装 20.03.25
     SpecialRelay = 0x91,            # 特殊リレー [SM]
     SpecialRegister = 0xA9,         # 特殊レジスタ [SD]
 
@@ -36,7 +44,6 @@ class FxDeviceType(IntEnum):
     LongCounter_Coil = 0x54,        # ロングカウンタコイル [LCC]
     LongCounter_Value = 0x56,       # ロングカウンタ現在値 [LCN]
 
-    FileRegister = 0xAF,            # ファイルレジスタ：ブロック切り替え方式 [R]
     FileRegister_ZR = 0xB0,         # ファイルレジスタ：連番アクセス方式 [ZR]  なぜ２つある？ 18.01.16
     RefreshDataRegister = 0x2C,     # リフレッシュデータレジスタ [RD]
 
@@ -52,6 +59,7 @@ class FxDeviceType(IntEnum):
         elif(self.value == FxDeviceType.OutputSignal): return 'X'
         elif(self.value == FxDeviceType.InnerRelay): return 'M'
         elif(self.value == FxDeviceType.DataRegister): return 'D'
+        elif(self.value == FxDeviceType.FileRegister): return 'R'
         elif(self.value == FxDeviceType.Timer_Contact): return 'TS'
         elif(self.value == FxDeviceType.Timer_Coil): return 'TC'
         elif(self.value == FxDeviceType.Timer_Value): return 'TN'
@@ -110,6 +118,7 @@ class FxDevice:
         FxDeviceType.OutputSignal : ('Y',num_sys_xy, FxDataType.Bit),
         FxDeviceType.InnerRelay : ('M',FxNumberSystem.Decimal, FxDataType.Bit),
         FxDeviceType.DataRegister : ('D', FxNumberSystem.Decimal, None),
+        FxDeviceType.FileRegister : ('R', FxNumberSystem.Decimal, None),
     }
 
     def __init__(self, device_name:str, fx_data_type = FxDataType.Signed16, value = 0): # コンストラクタ

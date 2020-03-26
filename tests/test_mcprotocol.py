@@ -5,8 +5,9 @@ import unittest
 import struct
 
 import mcprotocol
-from mcprotocol.classes import CpuType, Protocol
+from mcprotocol import CpuType, Protocol
 from mcprotocol.fxdevice import FxDevice, FxDataType
+
 
 # この様に設定する
 mcprotocol.config.DESTINATION_IP = '192.168.1.15'
@@ -19,9 +20,13 @@ mc_proc = mcprotocol.MCProtocol(cpu_type= CpuType.FX5UCPU)
 
 
 # 単一デバイスの読み書き
-single_16_rd = mc_proc.get_device('D100', FxDataType.Signed16)
-single_u32_rd = mc_proc.get_device('D102', FxDataType.Unsigned32)
-single_fl_rd = mc_proc.get_device('D104', FxDataType.Float)
+D100_16_rd = mc_proc.get_device('D100', FxDataType.Signed16)
+R32767_16_rd = mc_proc.get_device('R32767', FxDataType.Signed16)
+M1_16_rd = mc_proc.get_device('M1', FxDataType.Signed16)
+
+#single_16_rd = mc_proc.get_device('D100', FxDataType.Signed16)
+#single_u32_rd = mc_proc.get_device('D102', FxDataType.Unsigned32)
+#single_fl_rd = mc_proc.get_device('D104', FxDataType.Float)
 #single_16_wr = mc_proc.set_device('D100', 123, FxDataType.Signed16)
 #single_u32_wr = mc_proc.set_device('D102', 1234567, FxDataType.Unsigned32, )
 #single_fl_wr = mc_proc.set_device('D104', 1234.56789, FxDataType.Float)

@@ -16,7 +16,7 @@ class MCProtocol():
         __cpu_type = cpu_type
         config.ETHERNET_FRAME = plc_dict.EtherFrame[cpu_type]
         config.SERIAL_FRAME = plc_dict.SerialFrame[cpu_type]
-        config.CPU_SERIES = plc_dict.CPU_Series[cpu_type]
+        config.CPU_SERIES = plc_dict.CPU_Series[cpu_type]        
 
     def __del__(self):
         pass
