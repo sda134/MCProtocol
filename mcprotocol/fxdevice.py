@@ -28,9 +28,10 @@ class FxDeviceType(IntEnum):
     Timer_Coil = 0xC0,              # タイマーコイル [TC]
     Timer_Value = 0xC2,             # タイマー現在値 [TN]
 
-    # 以下、未実装 20.03.25
     SpecialRelay = 0x91,            # 特殊リレー [SM]
     SpecialRegister = 0xA9,         # 特殊レジスタ [SD]
+
+    # 以下、未実装 20.03.25
 
     IntegratedTimerContact = 0xC7,  # 積算タイマー接点 [STS]
     IntegratedTimer_Coil = 0xC6,    # 積算タイマーコイル [STC]
@@ -63,6 +64,8 @@ class FxDeviceType(IntEnum):
         elif(self.value == FxDeviceType.Timer_Contact): return 'TS'
         elif(self.value == FxDeviceType.Timer_Coil): return 'TC'
         elif(self.value == FxDeviceType.Timer_Value): return 'TN'
+        elif(self.value == FxDeviceType.SpecialRegister): return 'SD'
+        elif(self.value == FxDeviceType.SpecialRelay): return 'SM'
         else: return ''
 
 
@@ -113,6 +116,9 @@ class FxDevice:
         FxDeviceType.Timer_Contact : ('TS', FxNumberSystem.Decimal, FxDataType.Bit),
         FxDeviceType.Timer_Coil : ('TC', FxNumberSystem.Decimal, FxDataType.Bit),
         FxDeviceType.Timer_Value : ('TN', FxNumberSystem.Decimal, FxDataType.Signed16),
+
+        FxDeviceType.SpecialRegister : ('SD', FxNumberSystem.Decimal, None),
+        FxDeviceType.SpecialRelay : ('SM', FxNumberSystem.Decimal, FxDataType.Bit),
 
         FxDeviceType.InputSignal : ('X', num_sys_xy, FxDataType.Bit),
         FxDeviceType.OutputSignal : ('Y',num_sys_xy, FxDataType.Bit),

@@ -20,9 +20,9 @@ mc_proc = mcprotocol.MCProtocol(cpu_type= CpuType.FX5UCPU)
 
 
 # 単一デバイスの読み書き
-D100_16_rd = mc_proc.get_device('D100', FxDataType.Signed16)
+D100_16_rd = mc_proc.get_device('SD8010', FxDataType.Signed16)
 R32767_16_rd = mc_proc.get_device('R32767', FxDataType.Signed16)
-M1_16_rd = mc_proc.get_device('M1', FxDataType.Signed16)
+#M1_16_rd = mc_proc.get_device('M1', FxDataType.Signed16)
 
 #single_16_rd = mc_proc.get_device('D100', FxDataType.Signed16)
 #single_u32_rd = mc_proc.get_device('D102', FxDataType.Unsigned32)

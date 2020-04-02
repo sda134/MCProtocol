@@ -13,7 +13,7 @@ from mcprotocol.fxdevice import FxDevice, FxDataType
 
 
 # 通常使用のテスト
-fx_d = FxDevice('D100', fx_data_type= FxDataType.Float)
+fx_d = FxDevice('D100', FxDataType.Signed16)
 fx_m = FxDevice('M100', fx_data_type= FxDataType.Float)     # initでFloat を指定してもBitになる事を確認
 
 # byte変換のテスト
