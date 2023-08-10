@@ -99,17 +99,25 @@ def socket_send(sending_data:bytearray) -> Optional[bytearray]:
     recievedData = None
 
     try:
-        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as soc:
-            soc.connect((host, port))
-            
-            if config.MONITOR_SENDING_BYTES:
-                print('Sending:', repr(sending_data))
-            
-            soc.sendall(sending_data)
-            recievedData = soc.recv(1024)
-
-            if config.MONITOR_RECEIVED_BYTES:
-                print('Received:', repr(recievedData))    
+        if config.PROTOCOL == Protocol.UDP_IP:
+            with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as soc:
+                soc.connect((host, port))
+                
+                if config.MONITOR_SENDING_BYTES:
+                    print('Sending(UDP):', repr(sending_data))
+                
+                soc.sendall(sending_data)
+                print('sent')
+                recievedData = soc.recv(1024)
+        elif config.PROTOCOL == Protocol.TCP_IP:
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as soc:
+                soc.connect((host, port))
+                
+                if config.MONITOR_SENDING_BYTES:
+                    print('Sending(TCP):', repr(sending_data))
+                
+                soc.sendall(sending_data)
+                recievedData = soc.recv(1024)
     except TimeoutError:
         print ('Timeout')
         pass

@@ -38,7 +38,7 @@ class PacketType(Enum):
 
 class Protocol(Enum):
     TCP_IP = 1
-    #UDP_IP = 2
+    UDP_IP = 2
     Serial = 3
 
 class UnitControl(Enum):
