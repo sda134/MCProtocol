@@ -31,6 +31,9 @@ class FxDeviceType(IntEnum):
     SpecialRelay = 0x91,            # 特殊リレー [SM]
     SpecialRegister = 0xA9,         # 特殊レジスタ [SD]
 
+    # 2023-08-10 追加
+    FxDeviceType.ExtendedDataRegisterW : ('W', FxNumberSystem.Hexadecimal, None),
+
     # 以下、未実装 20.03.25
 
     IntegratedTimerContact = 0xC7,  # 積算タイマー接点 [STS]
@@ -61,6 +64,7 @@ class FxDeviceType(IntEnum):
         elif(self.value == FxDeviceType.InnerRelay): return 'M'
         elif(self.value == FxDeviceType.DataRegister): return 'D'
         elif(self.value == FxDeviceType.FileRegister): return 'R'
+        elif(self.value == FxDeviceType.ExtendedDataRegisterW): return 'W'
         elif(self.value == FxDeviceType.Timer_Contact): return 'TS'
         elif(self.value == FxDeviceType.Timer_Coil): return 'TC'
         elif(self.value == FxDeviceType.Timer_Value): return 'TN'
@@ -123,6 +127,7 @@ class FxDevice:
         FxDeviceType.InputSignal : ('X', num_sys_xy, FxDataType.Bit),
         FxDeviceType.OutputSignal : ('Y',num_sys_xy, FxDataType.Bit),
         FxDeviceType.InnerRelay : ('M',FxNumberSystem.Decimal, FxDataType.Bit),
+        FxDeviceType.ExtendedDataRegisterW : ('W', FxNumberSystem.Hexadecimal, None),
         FxDeviceType.DataRegister : ('D', FxNumberSystem.Decimal, None),
         FxDeviceType.FileRegister : ('R', FxNumberSystem.Decimal, None),
     }
